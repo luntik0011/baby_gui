@@ -39,47 +39,35 @@ async function SQLinit(){
   .catch((err) => console.error('[32mИнициализация SQL прошла с ошибкой: [0m', err));
 }
 
-async function accessingSQL() {
-    sequelize = new Sequelize('baby_gui_db',   //Подключение к mariaDB/baby_gui_db
+async function OpenSQL() {
+  sequelize = new Sequelize('baby_gui_db',   //Подключение к mariaDB/baby_gui_db
     process.env.SQLUser, 
     process.env.SQLPass, {
       host: 'localhost',
       dialect: 'mariadb'
     }) 
     console.log('[32mSQL is open[0m')
-  
-    const timetable = sequelize.define( //Описание таблицы
-    'timetable',
-    {
-    event: {
-      type: Sequelize.STRING,
-    },
-    time: {
-      type: Sequelize.DATE,
-    },
-  });
 
-  ////////rw////////
-  
-  
-  sequelize.close()
+  timetable.init({
+    event: DataTypes.STRING,
+    time:  DataTypes.DATE,
+  },{
+    sequelize, modelName: 'timetable'
+  });
+};
+
+async function CloseSQL() { //Отключение от базы
+  await sequelize.close()
       .then(() => console.log('[32mSQL is close[0m'))
       .catch((err) => console.error('[32mSQL Close connection error: [0m', err));
 };
 
-function CloseSQL() {
-  sequelize.close()
-      .then(() => console.log('[32m\nSQL is close[0m'))
-      .catch((err) => console.error('SQL Close connection error: ', err));
+async function PostSQL(event, time = Date.now()) { //Запись в таблицу
+  await timetable.create({
+    event: event,
+    time:  time,
+  });
 };
-
-// // Testing the connection
-// try {
-//   await sequelize.authenticate();
-//   console.log('Connection has been established successfully.');
-// } catch (error) {
-//   console.error('Unable to connect to the database:', error);
-// }
 
 //Старт бота//////////////////////////////////////////////
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -89,14 +77,35 @@ bot.launch();
 bot.command('UserID', (ctx) => ctx.reply(`UserID ` + ctx.from.id)); //Ответ на UserID - UserID
 bot.start((ctx) => ctx.reply(`Я могу`,{                             //Ответ на /start - 2 кнопки
     reply_markup: {keyboard: [
-      [{text:"Дочь покушала"},
-       {text:"Дочь покакала"}],
+      [{text:"Поела"},
+       {text:"Покакала"}],
+      [{text:"Уснула"},
+       {text:"Проснулась"}],
   ]}
 }));
 
-bot.hears('Дочь покакала', (ctx) => OpenSQL());
+bot.hears('Поела', async (ctx) => {
+  await OpenSQL();
+  await PostSQL('Eat');
+  await CloseSQL();
+});
+bot.hears('Покакала', async (ctx) => {
+  await OpenSQL();
+  await PostSQL('Shitting');
+  await CloseSQL();
+});
+bot.hears('Уснула', async (ctx) => {
+  await OpenSQL();
+  await PostSQL('Sleep');
+  await CloseSQL();
+});
+bot.hears('Проснулась', async (ctx) => {
+  await OpenSQL();
+  await PostSQL('WakeUp');
+  await CloseSQL();
+});
 
-bot.hears('Дочь покушала', (ctx) => console.log('Дочь покушала'));
+// bot.hears('Дочь покушала', (ctx) => console.log('Дочь покушала'));
 
 
 // Enable graceful stop
