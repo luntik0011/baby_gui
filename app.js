@@ -4,23 +4,67 @@ const { Telegraf } = require('telegraf');
 const { Sequelize, Model, DataTypes } = require('sequelize');
 let sequelize;
 const mariadb = require('mariadb');
-// OpenSQL();
-async function OpenSQL() {
-  await User.sync({ force: true });
-  console.log("The table for the User model was just (re)created!");
+class timetable extends Model {};
 
-  sequelize = new Sequelize('my-childs-daily-routine_db', process.env.SQLUser, process.env.SQLPass, {
+//Инициализация SQL//////////////////////
+SQLinit();
+async function SQLinit(){
+  sequelize = new Sequelize('',   //Подключение к mariaDB
+    process.env.SQLUser, 
+    process.env.SQLPass, {
       host: 'localhost',
       dialect: 'mariadb'
+    });
+  await sequelize.getQueryInterface().createDatabase('baby_gui_db'); //Создание БД 
+  await sequelize.close()  //Отключение от mariaDB
+  sequelize = new Sequelize('baby_gui_db',   //Подключение к mariaDB/baby_gui_db
+  process.env.SQLUser, 
+  process.env.SQLPass, {
+    host: 'localhost',
+    dialect: 'mariadb'
+  });
+  const timetable = sequelize.define( //Описание таблицы
+    'timetable',
+    {
+    event: {
+      type: Sequelize.STRING,
+    },
+    time: {
+      type: Sequelize.DATE,
+    },
+  })
+  await timetable.sync()//Создание таблицы
+  await sequelize.close()  //Отключение от mariaDB
+  .then(() => console.log('[32mИнициализация SQL прошла успешно[0m'))
+  .catch((err) => console.error('[32mИнициализация SQL прошла с ошибкой: [0m', err));
+}
+
+async function accessingSQL() {
+    sequelize = new Sequelize('baby_gui_db',   //Подключение к mariaDB/baby_gui_db
+    process.env.SQLUser, 
+    process.env.SQLPass, {
+      host: 'localhost',
+      dialect: 'mariadb'
+    }) 
+    console.log('[32mSQL is open[0m')
+  
+    const timetable = sequelize.define( //Описание таблицы
+    'timetable',
+    {
+    event: {
+      type: Sequelize.STRING,
+    },
+    time: {
+      type: Sequelize.DATE,
+    },
   });
 
-  timetable.init({                    // подключение к таблице timetable
-    event:   DataTypes.STRING,
-    time:    DataTypes.DATE,
-  }, {
-      sequelize, modelName: 'timetable', timestamps: false
-  });
-  console.log('[32m\nSQL is open[0m')
+  ////////rw////////
+  
+  
+  sequelize.close()
+      .then(() => console.log('[32mSQL is close[0m'))
+      .catch((err) => console.error('[32mSQL Close connection error: [0m', err));
 };
 
 function CloseSQL() {
@@ -45,17 +89,14 @@ bot.launch();
 bot.command('UserID', (ctx) => ctx.reply(`UserID ` + ctx.from.id)); //Ответ на UserID - UserID
 bot.start((ctx) => ctx.reply(`Я могу`,{                             //Ответ на /start - 2 кнопки
     reply_markup: {keyboard: [
-      [{text:"Дочь покушала", callback_data: "callback1"},
-       {text:"Дочь покакала", callback_data: "callback2"}],
+      [{text:"Дочь покушала"},
+       {text:"Дочь покакала"}],
   ]}
 }));
 
-bot.action("callback1",(ctx) => {
-  OpenSQL();
-});
-bot.action("callback2",(ctx) => {
-  CloseSQL();
-});
+bot.hears('Дочь покакала', (ctx) => OpenSQL());
+
+bot.hears('Дочь покушала', (ctx) => console.log('Дочь покушала'));
 
 
 // Enable graceful stop
