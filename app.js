@@ -69,6 +69,22 @@ async function PostSQL(event, time = Date.now()) { //Запись в табли�
   });
 };
 
+async function BabyStatys(){
+  let Statys = '';
+  let options = {hour: 'numeric', minute: 'numeric' };
+  await OpenSQL();
+  RequestSQL = await timetable.findOne({where: {event: 'Eat'}});
+  Statys += (`Поела ${RequestSQL.dataValues.time.toLocaleDateString('ru-RU', options)}\n`)
+  RequestSQL = await timetable.findOne({where: {event: 'Shitting'}});
+  Statys += (`Покакала ${RequestSQL.dataValues.time.toLocaleDateString('ru-RU', options)}\n`)
+  RequestSQL = await timetable.findOne({where: {event: 'Sleep'}});
+  Statys += (`Уснула ${RequestSQL.dataValues.time.toLocaleDateString('ru-RU', options)}\n`)
+  RequestSQL = await timetable.findOne({where: {event: 'WakeUp'}});
+  Statys += (`Проснулась ${RequestSQL.dataValues.time.toLocaleDateString('ru-RU', options)}\n`)
+  CloseSQL();
+  return (Statys);
+}
+
 //Старт бота//////////////////////////////////////////////
 const bot = new Telegraf(process.env.BOT_TOKEN);
 bot.launch();
@@ -102,15 +118,14 @@ bot.hears('Уснула', async (ctx) => {
 bot.hears('Проснулась', async (ctx) => {
   await OpenSQL();
   await PostSQL('WakeUp');
-  await CloseSQL();
+  await CloseSQL();  
 });
 
-// bot.hears('Дочь покушала', (ctx) => console.log('Дочь покушала'));
-
+bot.command('Statys', async (ctx) => ctx.reply(await BabyStatys()));
 
 // Enable graceful stop
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+// process.once('SIGINT', () => bot.stop('SIGINT'));
+// process.once('SIGTERM', () => bot.stop('SIGTERM'));
 //////////////////////////////////////////////////////////////
 // bot.start((ctx) => ctx.reply('Welcome'));
 // bot.help((ctx) => ctx.reply('Send me a sticker'));
