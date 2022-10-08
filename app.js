@@ -69,18 +69,24 @@ async function PostSQL(event, time = Date.now()) { //Запись в табли�
   });
 };
 
+function TimeOnly(Date){  
+  return (Date.getHours() + ':' + Date.getMinutes());
+}
+
 async function BabyStatys(){
-  let Statys = '';
+  let Statys = `<pre>
+           Факт ║ План\n`;
   let options = {hour: 'numeric', minute: 'numeric' };
   await OpenSQL();
   RequestSQL = await timetable.findOne({where: {event: 'Eat'}});
-  Statys += (`Поела ${RequestSQL.dataValues.time.toLocaleDateString('ru-RU', options)}\n`)
+  Statys += (`Поела      ${TimeOnly(RequestSQL.dataValues.time)}║\n`);
   RequestSQL = await timetable.findOne({where: {event: 'Shitting'}});
-  Statys += (`Покакала ${RequestSQL.dataValues.time.toLocaleDateString('ru-RU', options)}\n`)
+  Statys += (`Покакала   ${TimeOnly(RequestSQL.dataValues.time)}║\n`);
   RequestSQL = await timetable.findOne({where: {event: 'Sleep'}});
-  Statys += (`Уснула ${RequestSQL.dataValues.time.toLocaleDateString('ru-RU', options)}\n`)
+  Statys += (`Уснула     ${TimeOnly(RequestSQL.dataValues.time)}║\n`);
   RequestSQL = await timetable.findOne({where: {event: 'WakeUp'}});
-  Statys += (`Проснулась ${RequestSQL.dataValues.time.toLocaleDateString('ru-RU', options)}\n`)
+  Statys += (`Проснулась ${TimeOnly(RequestSQL.dataValues.time)}║\n`);
+  Statys += (`</pre>`)
   CloseSQL();
   return (Statys);
 }
@@ -121,7 +127,12 @@ bot.hears('Проснулась', async (ctx) => {
   await CloseSQL();  
 });
 
-bot.command('Statys', async (ctx) => ctx.reply(await BabyStatys()));
+bot.command('Statys', async (ctx) => ctx.reply(await BabyStatys(),{
+  parse_mode: 'HTML',
+  // reply_markup: {inline_keyboard: [
+  //     [{text:`Событие`, callback_data: 'q'}, {text:`Факт`, callback_data: 'q'}, {text:`План`, callback_data: 'q'}],
+  //     [{text:`Поела`, callback_data: 'q'}, {text:`22:11`, callback_data: 'q'}, {text:`План`, callback_data: 'q'}]]}
+}));
 
 // Enable graceful stop
 // process.once('SIGINT', () => bot.stop('SIGINT'));
