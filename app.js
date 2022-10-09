@@ -69,7 +69,7 @@ async function PostSQL(event, time = Date.now()) { //Запись в табли�
   });
 };
 
-function TimeOnly(Date){  
+function TimeOnly(Date){  //Достает время из даты
   return (Date.getHours() + ':' + Date.getMinutes());
 }
 
@@ -79,13 +79,15 @@ async function BabyStatys(){
   let options = {hour: 'numeric', minute: 'numeric' };
   await OpenSQL();
   RequestSQL = await timetable.findOne({where: {event: 'Eat'}});
-  Statys += (`Поела      ${TimeOnly(RequestSQL.dataValues.time)}║\n`);
+  Statys += (`Поела        ${TimeOnly(RequestSQL.dataValues.time)}\n`);
+  Statys += (`Когда кушать ${TimeOnly(new Date(RequestSQL.dataValues.time.getTime()+
+                                                        (1000*60*60*2.5)))}\n`);
   RequestSQL = await timetable.findOne({where: {event: 'Shitting'}});
-  Statys += (`Покакала   ${TimeOnly(RequestSQL.dataValues.time)}║\n`);
+  Statys += (`Покакала     ${TimeOnly(RequestSQL.dataValues.time)}\n`);
   RequestSQL = await timetable.findOne({where: {event: 'Sleep'}});
-  Statys += (`Уснула     ${TimeOnly(RequestSQL.dataValues.time)}║\n`);
+  Statys += (`Уснула       ${TimeOnly(RequestSQL.dataValues.time)}\n`);
   RequestSQL = await timetable.findOne({where: {event: 'WakeUp'}});
-  Statys += (`Проснулась ${TimeOnly(RequestSQL.dataValues.time)}║\n`);
+  Statys += (`Проснулась   ${TimeOnly(RequestSQL.dataValues.time)}\n`);
   Statys += (`</pre>`)
   CloseSQL();
   return (Statys);
