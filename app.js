@@ -70,24 +70,32 @@ async function PostSQL(event, time = Date.now()) { //Запись в табли�
 };
 
 function TimeOnly(Date){  //Достает время из даты
-  return (Date.getHours() + ':' + Date.getMinutes());
+  let ShortTime = Date.getHours();
+  if (ShortTime < 10) {
+    ShortTime = ' ' + ShortTime
+  }
+  ShortTime = ShortTime + ':' + Date.getMinutes();
+  if (ShortTime.length < 5) {
+    ShortTime = ShortTime.slice(0, -1) + '0' + ShortTime.slice(-1)
+  }
+  return (ShortTime);
 }
 
 async function BabyStatys(){
-  let Statys = `<pre>
-            Факт ║ План\n`;
+  let Statys = `<pre>\n`;
+              // Факт ║ План
   let options = {hour: 'numeric', minute: 'numeric' };
   await OpenSQL();
   RequestSQL = await timetable.findOne({where: {event: 'Eat'}, order: [ [ 'createdAt', 'DESC' ]],});
-  Statys += (`Поела        ${TimeOnly(RequestSQL.dataValues.time)}\n`);
-  Statys += (`Когда кушать ${TimeOnly(new Date(RequestSQL.dataValues.time.getTime()+
+  Statys += (`🍼 Поела        ${TimeOnly(RequestSQL.dataValues.time)}\n`);
+  Statys += (`🍽 Когда кушать ${TimeOnly(new Date(RequestSQL.dataValues.time.getTime()+
                                                         (1000*60*60*2.5)))}\n`);
   RequestSQL = await timetable.findOne({where: {event: 'Shitting'}, order: [ [ 'createdAt', 'DESC' ]],});
-  Statys += (`Покакала     ${TimeOnly(RequestSQL.dataValues.time)}\n`);
+  Statys += (`💩 Покакала     ${TimeOnly(RequestSQL.dataValues.time)}\n`);
   RequestSQL = await timetable.findOne({where: {event: 'Sleep'}, order: [ [ 'createdAt', 'DESC' ]],});
-  Statys += (`Уснула       ${TimeOnly(RequestSQL.dataValues.time)}\n`);
+  Statys += (`😴 Уснула       ${TimeOnly(RequestSQL.dataValues.time)}\n`);
   RequestSQL = await timetable.findOne({where: {event: 'WakeUp'}, order: [ [ 'createdAt', 'DESC' ]],});
-  Statys += (`Проснулась   ${TimeOnly(RequestSQL.dataValues.time)}\n`);
+  Statys += (`☀️ Проснулась   ${TimeOnly(RequestSQL.dataValues.time)}\n`);
   Statys += (`</pre>`)
   CloseSQL();
   return (Statys);
@@ -102,14 +110,15 @@ bot.launch();
 bot.command('UserID', (ctx) => ctx.reply(`UserID ` + ctx.from.id)); //Ответ на UserID - UserID
 bot.start((ctx) => ctx.reply(`Я могу`,{                             //Ответ на /start - 2 кнопки
     reply_markup: {keyboard: [
-      [{text:"Поела"},
-       {text:"Покакала"}],
-      [{text:"Уснула"},
-       {text:"Проснулась"}],
+      [{text:"🍼 Поела"},
+       {text:"💩 Покакала"}],
+      [{text:"😴 Уснула"},
+       {text:"☀️ Проснулась"}],
   ]}
 }));
 
-bot.hears('Поела', async (ctx) => {
+bot.hears('🍼 Поела', async (ctx) => {
+  ctx.deleteMessage();
   await OpenSQL();
   await PostSQL('Eat');
   ctx.reply(await BabyStatys(),{
@@ -117,7 +126,8 @@ bot.hears('Поела', async (ctx) => {
   })
   await CloseSQL();
 });
-bot.hears('Покакала', async (ctx) => {
+bot.hears('💩 Покакала', async (ctx) => {
+  ctx.deleteMessage();
   await OpenSQL();
   await PostSQL('Shitting');
   ctx.reply(await BabyStatys(),{
@@ -125,7 +135,8 @@ bot.hears('Покакала', async (ctx) => {
   })
   await CloseSQL();
 });
-bot.hears('Уснула', async (ctx) => {
+bot.hears('😴 Уснула', async (ctx) => {
+  ctx.deleteMessage();
   await OpenSQL();
   await PostSQL('Sleep');
   ctx.reply(await BabyStatys(),{
@@ -133,7 +144,8 @@ bot.hears('Уснула', async (ctx) => {
   })
   await CloseSQL();
 });
-bot.hears('Проснулась', async (ctx) => {
+bot.hears('☀️ Проснулась', async (ctx) => {
+  ctx.deleteMessage();
   await OpenSQL();
   await PostSQL('WakeUp');
   ctx.reply(await BabyStatys(),{
