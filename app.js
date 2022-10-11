@@ -75,18 +75,18 @@ function TimeOnly(Date){  //Достает время из даты
 
 async function BabyStatys(){
   let Statys = `<pre>
-           Факт ║ План\n`;
+            Факт ║ План\n`;
   let options = {hour: 'numeric', minute: 'numeric' };
   await OpenSQL();
-  RequestSQL = await timetable.findOne({where: {event: 'Eat'}});
+  RequestSQL = await timetable.findOne({where: {event: 'Eat'}, order: [ [ 'createdAt', 'DESC' ]],});
   Statys += (`Поела        ${TimeOnly(RequestSQL.dataValues.time)}\n`);
   Statys += (`Когда кушать ${TimeOnly(new Date(RequestSQL.dataValues.time.getTime()+
                                                         (1000*60*60*2.5)))}\n`);
-  RequestSQL = await timetable.findOne({where: {event: 'Shitting'}});
+  RequestSQL = await timetable.findOne({where: {event: 'Shitting'}, order: [ [ 'createdAt', 'DESC' ]],});
   Statys += (`Покакала     ${TimeOnly(RequestSQL.dataValues.time)}\n`);
-  RequestSQL = await timetable.findOne({where: {event: 'Sleep'}});
+  RequestSQL = await timetable.findOne({where: {event: 'Sleep'}, order: [ [ 'createdAt', 'DESC' ]],});
   Statys += (`Уснула       ${TimeOnly(RequestSQL.dataValues.time)}\n`);
-  RequestSQL = await timetable.findOne({where: {event: 'WakeUp'}});
+  RequestSQL = await timetable.findOne({where: {event: 'WakeUp'}, order: [ [ 'createdAt', 'DESC' ]],});
   Statys += (`Проснулась   ${TimeOnly(RequestSQL.dataValues.time)}\n`);
   Statys += (`</pre>`)
   CloseSQL();
@@ -95,6 +95,7 @@ async function BabyStatys(){
 
 //Старт бота//////////////////////////////////////////////
 const bot = new Telegraf(process.env.BOT_TOKEN);
+console.log(process.env.SQLUser);
 bot.launch();
 
 //Работа бота////////////////////////////////////////////////////////////
@@ -111,21 +112,33 @@ bot.start((ctx) => ctx.reply(`Я могу`,{                             //От�
 bot.hears('Поела', async (ctx) => {
   await OpenSQL();
   await PostSQL('Eat');
+  ctx.reply(await BabyStatys(),{
+    parse_mode: 'HTML',
+  })
   await CloseSQL();
 });
 bot.hears('Покакала', async (ctx) => {
   await OpenSQL();
   await PostSQL('Shitting');
+  ctx.reply(await BabyStatys(),{
+    parse_mode: 'HTML',
+  })
   await CloseSQL();
 });
 bot.hears('Уснула', async (ctx) => {
   await OpenSQL();
   await PostSQL('Sleep');
+  ctx.reply(await BabyStatys(),{
+    parse_mode: 'HTML',
+  })
   await CloseSQL();
 });
 bot.hears('Проснулась', async (ctx) => {
   await OpenSQL();
   await PostSQL('WakeUp');
+  ctx.reply(await BabyStatys(),{
+    parse_mode: 'HTML',
+  })
   await CloseSQL();  
 });
 
