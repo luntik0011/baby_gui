@@ -82,7 +82,7 @@ function TimeOnly(Date){  //Достает время из даты
 }
 
 async function BabyStatys(){
-  let Statys = `<pre>\n`;
+  let Statys = `<pre>`;
               // Факт ║ План
   let options = {hour: 'numeric', minute: 'numeric' };
   await OpenSQL();
@@ -108,7 +108,7 @@ bot.launch();
 
 //Работа бота////////////////////////////////////////////////////////////
 bot.command('UserID', (ctx) => ctx.reply(`UserID ` + ctx.from.id)); //Ответ на UserID - UserID
-bot.start((ctx) => ctx.reply(`Я могу`,{                             //Ответ на /start - 2 кнопки
+bot.start((ctx) => ctx.reply(`Здравствуй!`,{                             //Ответ на /start
     reply_markup: {keyboard: [
       [{text:"🍼 Поела"},
        {text:"💩 Покакала"}],
@@ -153,13 +153,25 @@ bot.hears('☀️ Проснулась', async (ctx) => {
   })
   await CloseSQL();  
 });
+bot.hears('Отмена', async (ctx) => {
+  ctx.deleteMessage();
+  ctx.reply(``,{
+    reply_markup: {keyboard: [
+      [{text:"🍼 Поела"},
+       {text:"💩 Покакала"}],
+      [{text:"😴 Уснула"},
+       {text:"☀️ Проснулась"}],
+    ]}
+  })
+});
 
 bot.command('Statys', async (ctx) => ctx.reply(await BabyStatys(),{
   parse_mode: 'HTML',
-  // reply_markup: {inline_keyboard: [
-  //     [{text:`Событие`, callback_data: 'q'}, {text:`Факт`, callback_data: 'q'}, {text:`План`, callback_data: 'q'}],
-  //     [{text:`Поела`, callback_data: 'q'}, {text:`22:11`, callback_data: 'q'}, {text:`План`, callback_data: 'q'}]]}
 }));
+
+bot.on('text', (ctx) => {
+  
+});
 
 // Enable graceful stop
 // process.once('SIGINT', () => bot.stop('SIGINT'));
